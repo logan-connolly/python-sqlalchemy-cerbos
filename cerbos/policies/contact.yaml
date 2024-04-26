@@ -1,3 +1,8 @@
+# NOTE: this is an example policy. You want to define a policy for each
+# of your resources exposed by the API. In this policy, you are specifiying
+# who has access to what and what actions they can perform on the resource.
+#
+# More info on policy authoring: https://docs.cerbos.dev/cerbos/latest/policies/authoring_tips
 ---
 apiVersion: api.cerbos.dev/v1
 resourcePolicy:
@@ -21,6 +26,7 @@ resourcePolicy:
 
     - actions: ["read", "update", "delete"]
       effect: EFFECT_ALLOW
+      # NOTE: derived from the `common_roles.yaml`
       derivedRoles:
         - owner
 
@@ -31,11 +37,14 @@ resourcePolicy:
       condition:
         match:
           all:
+            # NOTE: `of` filters the resources
             of:
               - expr: request.resource.attr.is_active == true
+              # NOTE: any requires only one expression to evaluate to true
               - any:
                   of:
                     - expr: request.principal.attr.department == "Sales"
+                    # NOTE: all requires all expressions to evaluate to true
                     - all:
                         of:
                           - expr: request.principal.attr.department == "Marketing"

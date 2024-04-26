@@ -1,3 +1,9 @@
+# NOTE: this is where cerbos shines over plain RBAC. Instead of explicitly defining all
+# the roles, you can dynamically derive new ones that can then be used in other policies.
+# In this example, we are creating a new `owner` role which is derived from the user who
+# created the contact.
+#
+# More info here: https://docs.cerbos.dev/cerbos/latest/policies/derived_roles.html
 ---
 apiVersion: "api.cerbos.dev/v1"
 description: |-
@@ -6,7 +12,11 @@ derivedRoles:
   name: common_roles
   definitions:
     - name: owner
+      # NOTE: The static role from the identity provider to which this derived role
+      # applies to. Sometimes this is named "consumer" instead of "user".
       parentRoles: ["user"]
       condition:
+        # NOTE: here is where we are dynamically checking to see if the user (principal)
+        # that is making the request is indeed the owner of the contact (resource).
         match:
           expr: request.resource.attr.owner_id == request.principal.id

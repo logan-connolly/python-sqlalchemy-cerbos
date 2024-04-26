@@ -72,6 +72,7 @@ def get_resource_from_contact(
     return Resource(
         id=str(db_contact.id),
         kind="contact",
+        # INFO: dynamically fetching all the field values from the underlying DB model.
         attr={
             n.name: get_value(getattr(db_contact, n.name)) for n in Contact.__table__.c
         },
@@ -80,6 +81,7 @@ def get_resource_from_contact(
 
 @app.get("/contacts")
 async def get_contacts(p: Principal = Depends(get_principal)) -> List[ContactSchema]:
+    # NOTE: this CerbosClient could be a dependency to inject into endpoints.
     with CerbosClient("localhost:3593") as c:
         pr = PlanResourcesInput.Resource(kind="contact")
 
@@ -123,6 +125,7 @@ async def get_contact(
 ) -> ContactSchema:
     r = get_resource_from_contact(db_contact)
 
+    # NOTE: this CerbosClient could be a dependency to inject into endpoints.
     with CerbosClient("localhost:3593") as c:
         resp = c.is_allowed("read", p, r)
         if not resp:
@@ -138,6 +141,7 @@ async def get_contact(
 async def create_contact(
     contact_schema: ContactSchema, p: Principal = Depends(get_principal)
 ) -> Dict[str, Union[str, ContactSchema]]:
+    # NOTE: this CerbosClient could be a dependency to inject into endpoints.
     with CerbosClient("localhost:3593") as c:
         if not c.is_allowed(
             "create",
@@ -168,6 +172,7 @@ async def update_contact(
 ) -> ContactSchema:
     r = get_resource_from_contact(db_contact)
 
+    # NOTE: this CerbosClient could be a dependency to inject into endpoints.
     with CerbosClient("localhost:3593") as c:
         if not c.is_allowed("update", p, r):
             raise HTTPException(
@@ -190,6 +195,7 @@ async def delete_contact(
     r: Resource = Depends(get_resource_from_contact),
     p: Principal = Depends(get_principal),
 ) -> Dict[str, str]:
+    # NOTE: this CerbosClient could be a dependency to inject into endpoints.
     with CerbosClient("localhost:3593") as c:
         if not c.is_allowed("delete", p, r):
             raise HTTPException(
